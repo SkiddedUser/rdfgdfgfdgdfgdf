@@ -621,9 +621,31 @@ end
 local HttpService = game:GetService("HttpService")
 local RunService = game:GetService("RunService")
 
--- Precarga de animaciones
-local idleAnimation = loadstring(HttpService:GetAsync("https://raw.githubusercontent.com/SkiddedUser/erereerer/main/rereeree.lua", true))()
-local walkAnimation = loadstring(HttpService:GetAsync("https://raw.githubusercontent.com/SkiddedUser/erqrwrqr/main/walk.lua", true))()
+-- Función para cargar y crear la animación
+local function loadAnimation(url)
+    local success, animationData = pcall(function()
+        return HttpService:GetAsync(url, true)
+    end)
+    
+    if not success then
+        warn("No se pudo cargar la animación:", animationData)
+        return nil
+    end
+    
+    local animation = Instance.new("Animation")
+    animation.AnimationId = "rbxassetid://0"  -- Placeholder
+    
+    -- Aplicar los datos de la animación cargada
+    pcall(function()
+        animation.AnimationId = animationData
+    end)
+    
+    return animation
+end
+
+-- Cargar animaciones
+local idleAnimation = loadAnimation("https://raw.githubusercontent.com/SkiddedUser/erereerer/main/rereeree.lua")
+local walkAnimation = loadAnimation("https://raw.githubusercontent.com/SkiddedUser/erqrwrqr/main/walk.lua")
 
 local plr = owner
 local char = plr.Character or plr.CharacterAdded:Wait()
@@ -631,11 +653,11 @@ local humanoid = char:WaitForChild("Humanoid")
 local hrp = char:WaitForChild("HumanoidRootPart")
 
 -- Crear tracks de animación
-local idleTrack = humanoid:LoadAnimation(idleAnimation)
-local walkTrack = humanoid:LoadAnimation(walkAnimation)
+local idleTrack = idleAnimation and humanoid:LoadAnimation(idleAnimation)
+local walkTrack = walkAnimation and humanoid:LoadAnimation(walkAnimation)
 
-idleTrack.Looped = true
-walkTrack.Looped = true
+if idleTrack then idleTrack.Looped = true end
+if walkTrack then walkTrack.Looped = true end
 
 -- Variables para el control de animaciones
 local isWalking = false
@@ -648,18 +670,20 @@ end
 
 -- Función para cambiar suavemente entre animaciones
 local function switchAnimation(from, to)
-    if from.IsPlaying then
+    if from and from.IsPlaying then
         from:Stop(transitionTime)
     end
-    if not to.IsPlaying then
+    if to and not to.IsPlaying then
         to:Play(transitionTime)
     end
 end
 
--- Iniciar la animación de idle
-idleTrack:Play()
+-- Iniciar la animación de idle si está disponible
+if idleTrack then
+    idleTrack:Play()
+end
 
--- Bucle principal con menor frecuencia de actualización
+-- Bucle principal
 RunService.Heartbeat:Connect(function()
     local walking = checkWalking()
     
