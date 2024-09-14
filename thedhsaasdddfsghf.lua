@@ -511,7 +511,7 @@ do
 							(tick() - s) / (tm / speed),
 							Enum.EasingStyle[w.es],
 							Enum.EasingDirection[w.ed]
-						))
+							))
 
 						if self:IsPrioritized(j) then
 							AnimationTrack.Rigs[self.Rig].Poses[j] = AnimationTrack.Rigs[self.Rig].Poses[j]:Lerp(cf, math.min(self.lerpFactor * math.max(1, speed), 1))
@@ -619,69 +619,43 @@ do
 end
 
 local HttpService = game:GetService("HttpService")
-local RunService = game:GetService("RunService")
-
--- Función para cargar animaciones de forma segura
-local function loadAnimationSafely(url)
-    local success, result = pcall(function()
-        return loadstring(HttpService:GetAsync(url, true))()
-    end)
-    if success and typeof(result) == "Instance" and result:IsA("Animation") then
-        return result
-    else
-        warn("No se pudo cargar la animación desde: " .. url)
-        return Instance.new("Animation")
-    end
-end
-
--- Cargar animaciones
-local idleAnimation = loadAnimationSafely("https://raw.githubusercontent.com/SkiddedUser/erereerer/main/rereeree.lua")
-local walkAnimation = loadAnimationSafely("https://raw.githubusercontent.com/SkiddedUser/erqrwrqr/main/walk.lua")
-
+local animation = loadstring(HttpService:GetAsync("https://raw.githubusercontent.com/SkiddedUser/erereerer/main/rereeree.lua", true))()
+local animationTrack = AnimationTrack.new()
+animationTrack:setAnimation(animation)
+animationTrack:setRig(owner.Character)
+animationTrack.Looped = true
 local plr = owner
-local char = plr.Character or plr.CharacterAdded:Wait()
-local humanoid = char:WaitForChild("Humanoid")
+local char = plr.Character
 local hrp = char:WaitForChild("HumanoidRootPart")
 
--- Crear tracks de animación
-local idleTrack = humanoid:LoadAnimation(idleAnimation)
-local walkTrack = humanoid:LoadAnimation(walkAnimation)
-
-idleTrack.Looped = true
-walkTrack.Looped = true
-
--- Variables para el control de animaciones
-local isWalking = false
-local transitionTime = 0.3 -- Tiempo de transición entre animaciones
+-- Cargar la animación de caminata
+local walkAnimation = loadstring(HttpService:GetAsync("https://raw.githubusercontent.com/SkiddedUser/erqrwrqr/main/walk.lua", true))()
+local walkAnimationTrack = AnimationTrack.new()
+walkAnimationTrack:setAnimation(walkAnimation)
+walkAnimationTrack:setRig(owner.Character)
+walkAnimationTrack.Looped = true
 
 -- Función para verificar si el personaje está caminando
-local function checkWalking()
-    return hrp.Velocity.Magnitude > 0.1
+local function isWalking()
+	local magnitude = hrp.Velocity.Magnitude
+	return magnitude >= 0.1
 end
-
--- Función para cambiar suavemente entre animaciones
-local function switchAnimation(from, to)
-    if from.IsPlaying then
-        from:Stop(transitionTime)
-    end
-    if not to.IsPlaying then
-        to:Play(transitionTime)
-    end
-end
-
--- Iniciar la animación de idle
-pcall(function() idleTrack:Play() end)
 
 -- Bucle principal
-RunService.Heartbeat:Connect(function()
-    local walking = checkWalking()
-    
-    if walking ~= isWalking then
-        isWalking = walking
-        if isWalking then
-            switchAnimation(idleTrack, walkTrack)
-        else
-            switchAnimation(walkTrack, idleTrack)
-        end
-    end
+game:GetService("RunService").Heartbeat:Connect(function()
+	if isWalking() then
+		if not walkAnimationTrack.IsPlaying then
+			walkAnimationTrack:Play()
+		end
+		if animationTrack.IsPlaying then
+			animationTrack:Stop()
+		end
+	else
+		if walkAnimationTrack.IsPlaying then
+			walkAnimationTrack:Stop()
+		end
+		if not animationTrack.IsPlaying then
+			animationTrack:Play()
+		end
+	end
 end)
