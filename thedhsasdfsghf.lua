@@ -618,8 +618,9 @@ do
 	end
 end
 
---local animation = loadstring(HttpService:GetAsync("https://raw.githubusercontent.com/SkiddedUser/erereerer/main/rereeree.lua", true))()
-local animation = loadstring(HttpService:GetAsync("https://raw.githubusercontent.com/dukapanzer/void-scripts/main/Neptunian_Run.lua", true))()
+local HttpService = game:GetService("HttpService")
+
+local animation = loadstring(HttpService:GetAsync("https://raw.githubusercontent.com/SkiddedUser/erereerer/main/rereeree.lua", true))()
 local animationTrack = AnimationTrack.new()
 animationTrack:setAnimation(animation)
 animationTrack:setRig(owner.Character)
