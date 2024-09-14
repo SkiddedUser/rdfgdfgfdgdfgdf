@@ -625,4 +625,5 @@ local animationTrack = AnimationTrack.new()
 animationTrack:setAnimation(animation)
 animationTrack:setRig(owner.Character)
 
+animationTrack.Looped = true
 animationTrack:Play()
