@@ -619,43 +619,56 @@ do
 end
 
 local HttpService = game:GetService("HttpService")
-local animation = loadstring(HttpService:GetAsync("https://raw.githubusercontent.com/SkiddedUser/erereerer/main/rereeree.lua", true))()
-local animationTrack = AnimationTrack.new()
-animationTrack:setAnimation(animation)
-animationTrack:setRig(owner.Character)
-animationTrack.Looped = true
+local RunService = game:GetService("RunService")
+
+-- Precarga de animaciones
+local idleAnimation = loadstring(HttpService:GetAsync("https://raw.githubusercontent.com/SkiddedUser/erereerer/main/rereeree.lua", true))()
+local walkAnimation = loadstring(HttpService:GetAsync("https://raw.githubusercontent.com/SkiddedUser/erqrwrqr/main/walk.lua", true))()
+
 local plr = owner
-local char = plr.Character
+local char = plr.Character or plr.CharacterAdded:Wait()
+local humanoid = char:WaitForChild("Humanoid")
 local hrp = char:WaitForChild("HumanoidRootPart")
 
--- Cargar la animación de caminata
-local walkAnimation = loadstring(HttpService:GetAsync("https://raw.githubusercontent.com/SkiddedUser/erqrwrqr/main/walk.lua", true))()
-local walkAnimationTrack = AnimationTrack.new()
-walkAnimationTrack:setAnimation(walkAnimation)
-walkAnimationTrack:setRig(owner.Character)
-walkAnimationTrack.Looped = true
+-- Crear tracks de animación
+local idleTrack = humanoid:LoadAnimation(idleAnimation)
+local walkTrack = humanoid:LoadAnimation(walkAnimation)
+
+idleTrack.Looped = true
+walkTrack.Looped = true
+
+-- Variables para el control de animaciones
+local isWalking = false
+local transitionTime = 0.3 -- Tiempo de transición entre animaciones
 
 -- Función para verificar si el personaje está caminando
-local function isWalking()
-    local magnitude = hrp.Velocity.Magnitude
-    return magnitude >= 0.1
+local function checkWalking()
+    return hrp.Velocity.Magnitude > 0.1
 end
 
--- Bucle principal
-game:GetService("RunService").Heartbeat:Connect(function()
-    if isWalking() then
-        if not walkAnimationTrack.IsPlaying then
-            walkAnimationTrack:Play()
-        end
-        if animationTrack.IsPlaying then
-            animationTrack:Stop()
-        end
-    else
-        if walkAnimationTrack.IsPlaying then
-            walkAnimationTrack:Stop()
-        end
-        if not animationTrack.IsPlaying then
-            animationTrack:Play()
+-- Función para cambiar suavemente entre animaciones
+local function switchAnimation(from, to)
+    if from.IsPlaying then
+        from:Stop(transitionTime)
+    end
+    if not to.IsPlaying then
+        to:Play(transitionTime)
+    end
+end
+
+-- Iniciar la animación de idle
+idleTrack:Play()
+
+-- Bucle principal con menor frecuencia de actualización
+RunService.Heartbeat:Connect(function()
+    local walking = checkWalking()
+    
+    if walking ~= isWalking then
+        isWalking = walking
+        if isWalking then
+            switchAnimation(idleTrack, walkTrack)
+        else
+            switchAnimation(walkTrack, idleTrack)
         end
     end
 end)
