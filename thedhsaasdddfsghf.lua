@@ -619,21 +619,43 @@ do
 end
 
 local HttpService = game:GetService("HttpService")
-
 local animation = loadstring(HttpService:GetAsync("https://raw.githubusercontent.com/SkiddedUser/erereerer/main/rereeree.lua", true))()
 local animationTrack = AnimationTrack.new()
 animationTrack:setAnimation(animation)
 animationTrack:setRig(owner.Character)
-
 animationTrack.Looped = true
-
 local plr = owner
 local char = plr.Character
 local hrp = char:WaitForChild("HumanoidRootPart")
-local magnitude = hrp.Velocity.magnitude
 
-if magnitude < 0.1 then
-	animationTrack:Play()
-else
-	animationTrack:Stop()
+-- Cargar la animación de caminata
+local walkAnimation = loadstring(HttpService:GetAsync("https://raw.githubusercontent.com/SkiddedUser/erqrwrqr/main/walk.lua", true))()
+local walkAnimationTrack = AnimationTrack.new()
+walkAnimationTrack:setAnimation(walkAnimation)
+walkAnimationTrack:setRig(owner.Character)
+walkAnimationTrack.Looped = true
+
+-- Función para verificar si el personaje está caminando
+local function isWalking()
+    local magnitude = hrp.Velocity.Magnitude
+    return magnitude >= 0.1
 end
+
+-- Bucle principal
+game:GetService("RunService").Heartbeat:Connect(function()
+    if isWalking() then
+        if not walkAnimationTrack.IsPlaying then
+            walkAnimationTrack:Play()
+        end
+        if animationTrack.IsPlaying then
+            animationTrack:Stop()
+        end
+    else
+        if walkAnimationTrack.IsPlaying then
+            walkAnimationTrack:Stop()
+        end
+        if not animationTrack.IsPlaying then
+            animationTrack:Play()
+        end
+    end
+end)
