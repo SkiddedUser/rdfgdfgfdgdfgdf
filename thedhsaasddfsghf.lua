@@ -626,4 +626,14 @@ animationTrack:setAnimation(animation)
 animationTrack:setRig(owner.Character)
 
 animationTrack.Looped = true
-animationTrack:Play()
+
+local plr = owner
+local char = plr.Character
+local hrp = char:WaitForChild("HumanoidRootPart")
+local magnitude = hrp.Velocity.magnitude
+
+if magnitude < 0.1 then
+	animationTrack:Play()
+else
+	animationTrack:Stop()
+end
